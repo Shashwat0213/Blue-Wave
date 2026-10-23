@@ -423,13 +423,11 @@ document.getElementById("progressTrack").onclick = (e) => {
 };
 
 // ==========================================
-// API & RENDER LISTS (With Backend Wakeup)
+// API & RENDER LISTS
 // ==========================================
 async function searchYouTube(query) {
   try {
-    // Pehle backend ko jagane ke liye ek request bhejte hain
     await fetch(BACKEND_URL).catch(()=>{});
-    
     const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
     return data.results || [];
@@ -443,13 +441,13 @@ async function performSearch() {
   const q = document.getElementById("globalSearch").value.trim();
   if (!q) return;
   document.getElementById("searchSection").style.display = "block";
-  document.getElementById("searchInfo").textContent = "Searching... (Backend wake up ho raha hai, thoda time lag sakta hai)";
+  document.getElementById("searchInfo").textContent = "Searching... (Backend wake up ho raha hai)";
   document.getElementById("searchResults").innerHTML = '<div class="empty">⏳ Searching YouTube... Please wait.</div>';
   document.getElementById("searchSection").scrollIntoView({ behavior: "smooth" });
 
   const results = await searchYouTube(q);
   if (!results.length) {
-    document.getElementById("searchResults").innerHTML = '<div class="empty">No results found ya Backend so raha hai.</div>';
+    document.getElementById("searchResults").innerHTML = '<div class="empty">No results found.</div>';
     document.getElementById("searchInfo").textContent = "0 results";
     return;
   }
@@ -477,8 +475,8 @@ function renderSongList(list, containerId) {
     row.className = "song" + (playingId === id ? " playing" : "");
     row.dataset.id = id;
     
-    // YT1s direct download link
-    const dlUrl = `https://yt1s.com/en/youtube-to-mp3?q=${id}`;
+    // PAGALWORLD SEARCH LINK
+    const downloadUrl = `https://pagalworld.is/search?q=${encodeURIComponent(s.trackName)}`;
     
     row.innerHTML = `
       <img src="${esc(s.artworkUrl100 || 'https://placehold.co/100x100/1c2542/22d3ee?text=♪')}" alt="">
@@ -491,7 +489,7 @@ function renderSongList(list, containerId) {
         <button class="fav-btn ${isFav ? 'active' : ''}" title="Favorite">${isFav ? '❤️' : '♡'}</button>
         <button class="mark-btn ${listened ? 'done' : ''}" title="Mark Listened">✓</button>
         <button class="add-pl-btn" title="Add to Playlist" onclick="openAddToPlaylist('${id}', '${esc(s.trackName)}', '${esc(s.artistName)}', '${esc(s.artworkUrl100)}')">＋📁</button>
-        <a href="${dlUrl}" target="_blank" class="download-btn" title="Download MP3">⬇</a>
+        <a href="${downloadUrl}" target="_blank" class="download-btn" title="Download from Pagalworld">⬇</a>
       </div>
     `;
 
@@ -552,7 +550,7 @@ function renderArtists() {
 async function loadArtistSongs(artistName) {
   document.getElementById("songsSection").style.display = "block";
   document.getElementById("songHeading").textContent = artistName + " Songs";
-  document.getElementById("songSubheading").textContent = "Loading... (Wait for backend)";
+  document.getElementById("songSubheading").textContent = "Loading...";
   document.getElementById("songs").innerHTML = '<div class="empty">⏳ Fetching songs...</div>';
   document.getElementById("songsSection").scrollIntoView({ behavior: "smooth" });
 
