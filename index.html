@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Ye line YouTube Video play hone ke liye zaroori hai (Error 153 fix) -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>BlueWave Music - Ultimate</title>
 <style>
@@ -18,7 +17,6 @@
     --glass: blur(12px);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--bg);
@@ -87,11 +85,11 @@
   .song-info p { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   
   .song-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .song-actions button { padding: 8px 12px; border-radius: 8px; font-size: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); transition: 0.2s; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #fff;}
-  .song-actions button:hover { background: var(--blue); border-color: var(--blue); }
+  .song-actions button, .song-actions a { padding: 8px 12px; border-radius: 8px; font-size: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); transition: 0.2s; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 5px; color: #fff; text-decoration: none;}
+  .song-actions button:hover, .song-actions a:hover { background: var(--blue); border-color: var(--blue); }
   .song-actions .fav-btn.active { background: #ec4899; border-color: #ec4899; }
   .song-actions .mark-btn.done { background: #16a34a; border-color: #16a34a; }
-  .song-actions .download-btn { background: rgba(85, 229, 255, 0.1); color: var(--cyan); border-color: var(--cyan); text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 14px;}
+  .song-actions .download-btn { background: rgba(85, 229, 255, 0.1); color: var(--cyan); border-color: var(--cyan); }
   .song-actions .download-btn:hover { background: var(--cyan); color: #000; }
   .song-actions .add-pl-btn { background: rgba(234, 179, 8, 0.1); color: #eab308; border-color: #eab308; }
   .song-actions .add-pl-btn:hover { background: #eab308; color: #000; }
@@ -104,7 +102,6 @@
 
   .empty { text-align: center; padding: 40px; color: var(--muted); border: 1px dashed var(--line); border-radius: 16px; background: var(--panel); }
 
-  /* Sticky Player Bar */
   .player-bar {
     position: fixed; bottom: 0; left: 0; right: 0; background: rgba(6, 17, 38, 0.95); backdrop-filter: blur(20px);
     border-top: 1px solid var(--line); padding: 15px 5%; display: flex; align-items: center; gap: 20px; z-index: 100;
@@ -141,7 +138,7 @@
     .player-volume { display: none; }
     .song { flex-wrap: wrap; }
     .song-actions { width: 100%; justify-content: space-between; margin-top: 10px; }
-    .song-actions button, .song-actions .download-btn { flex: 1; justify-content: center; padding: 10px 5px; font-size: 12px; }
+    .song-actions button, .song-actions a { flex: 1; justify-content: center; padding: 10px 5px; font-size: 12px; }
     .card img { height: 150px; }
     .song img { width: 50px; height: 50px; }
   }
@@ -280,7 +277,7 @@ function onYTReady() {
 
   ytPlayer = new YT.Player("ytPlayer", {
     height: "0", width: "0",
-    playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, origin: window.location.origin },
+    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, origin: window.location.origin, enablejsapi: 1 },
     events: {
       onReady: () => { 
         ytReady = true; 
@@ -288,7 +285,12 @@ function onYTReady() {
         if (pendingVideo) { playVideo(pendingVideo.videoId, pendingVideo.title, pendingVideo.artist, pendingVideo.thumbnail); pendingVideo = null; }
       },
       onStateChange: onStateChange,
-      onError: (e) => { console.error("YouTube Error:", e.data); alert("Video play nahi ho paya. Error code: " + e.data); }
+      onError: (e) => { 
+        console.error("YouTube Error:", e.data); 
+        if (e.data === 150 || e.data === 101) {
+           alert("Ye video mobile browser par direct play nahi ho sakta. Aap download button se ise download kar sakte hain.");
+        }
+      }
     }
   });
 }
@@ -421,27 +423,33 @@ document.getElementById("progressTrack").onclick = (e) => {
 };
 
 // ==========================================
-// API & RENDER LISTS
+// API & RENDER LISTS (With Backend Wakeup)
 // ==========================================
 async function searchYouTube(query) {
   try {
+    // Pehle backend ko jagane ke liye ek request bhejte hain
+    await fetch(BACKEND_URL).catch(()=>{});
+    
     const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
     return data.results || [];
-  } catch (e) { alert("Search failed. Check internet."); return []; }
+  } catch (e) { 
+    alert("Search failed. Render backend so raha hoga. 30 second wait karke wapas try karein."); 
+    return []; 
+  }
 }
 
 async function performSearch() {
   const q = document.getElementById("globalSearch").value.trim();
   if (!q) return;
   document.getElementById("searchSection").style.display = "block";
-  document.getElementById("searchInfo").textContent = "Searching...";
-  document.getElementById("searchResults").innerHTML = '<div class="empty">⏳ Searching YouTube...</div>';
+  document.getElementById("searchInfo").textContent = "Searching... (Backend wake up ho raha hai, thoda time lag sakta hai)";
+  document.getElementById("searchResults").innerHTML = '<div class="empty">⏳ Searching YouTube... Please wait.</div>';
   document.getElementById("searchSection").scrollIntoView({ behavior: "smooth" });
 
   const results = await searchYouTube(q);
   if (!results.length) {
-    document.getElementById("searchResults").innerHTML = '<div class="empty">No results found.</div>';
+    document.getElementById("searchResults").innerHTML = '<div class="empty">No results found ya Backend so raha hai.</div>';
     document.getElementById("searchInfo").textContent = "0 results";
     return;
   }
@@ -469,7 +477,8 @@ function renderSongList(list, containerId) {
     row.className = "song" + (playingId === id ? " playing" : "");
     row.dataset.id = id;
     
-    const dlUrl = `https://www.y2mate.com/youtube/${id}`;
+    // YT1s direct download link
+    const dlUrl = `https://yt1s.com/en/youtube-to-mp3?q=${id}`;
     
     row.innerHTML = `
       <img src="${esc(s.artworkUrl100 || 'https://placehold.co/100x100/1c2542/22d3ee?text=♪')}" alt="">
@@ -515,7 +524,7 @@ function openAddToPlaylist(id, title, artist, image) {
 }
 
 // ==========================================
-// ARTISTS (Fixed Images)
+// ARTISTS
 // ==========================================
 const featuredArtists = [
   { name: "Arijit Singh", genre: "Playback", img: "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/1b/1b/5a/1b1b5a1f-8635-8798-7215-2c2a4e0f7e1b/886446789012.jpg/400x400bb.jpg" },
@@ -543,7 +552,7 @@ function renderArtists() {
 async function loadArtistSongs(artistName) {
   document.getElementById("songsSection").style.display = "block";
   document.getElementById("songHeading").textContent = artistName + " Songs";
-  document.getElementById("songSubheading").textContent = "Loading...";
+  document.getElementById("songSubheading").textContent = "Loading... (Wait for backend)";
   document.getElementById("songs").innerHTML = '<div class="empty">⏳ Fetching songs...</div>';
   document.getElementById("songsSection").scrollIntoView({ behavior: "smooth" });
 
@@ -664,6 +673,5 @@ document.getElementById("globalSearch").addEventListener("keydown", e => {
   if (e.key === "Enter") performSearch();
 });
 </script>
-
 </body>
 </html>
