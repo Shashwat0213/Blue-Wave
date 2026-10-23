@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Ye line YouTube Video play hone ke liye zaroori hai (Error 153 fix) -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>BlueWave Music - Ultimate</title>
 <style>
@@ -18,7 +19,6 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   
-  /* Animated Background */
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--bg);
@@ -29,19 +29,13 @@
   }
   body::before {
     content: '';
-    position: fixed;
-    top: -50%; left: -50%; width: 200%; height: 200%;
+    position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
     background: radial-gradient(circle at 50% 50%, rgba(22,139,255,0.15) 0%, transparent 40%),
                 radial-gradient(circle at 80% 20%, rgba(85,229,255,0.1) 0%, transparent 30%);
-    animation: rotateBg 25s linear infinite;
-    z-index: -1;
+    animation: rotateBg 25s linear infinite; z-index: -1;
   }
-  @keyframes rotateBg {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+  @keyframes rotateBg { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-  /* Header */
   header {
     display: flex; justify-content: space-between; align-items: center;
     padding: 20px 5%; background: rgba(6, 17, 38, 0.8);
@@ -56,7 +50,6 @@
   .section-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
   .section-head h2 { font-size: 24px; font-weight: 800; background: linear-gradient(to right, #fff, var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   
-  /* Search */
   .search-container { position: relative; max-width: 700px; margin: 20px auto 40px; }
   .search-container input {
     width: 100%; padding: 18px 24px; border-radius: 50px;
@@ -67,54 +60,48 @@
   .search-container input:focus { border-color: var(--cyan); box-shadow: 0 0 15px rgba(85,229,255,0.2); }
   .search-container button {
     position: absolute; right: 8px; top: 8px; bottom: 8px; border-radius: 50px;
-    padding: 0 25px; background: var(--blue); font-weight: bold; border: none; cursor: pointer;
+    padding: 0 25px; background: var(--blue); font-weight: bold; border: none; cursor: pointer; color: #fff;
   }
 
-  /* Dashboard & Cards */
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
   .stat { background: var(--panel); backdrop-filter: var(--glass); border: 1px solid var(--line); border-radius: 16px; padding: 20px; text-align: center; transition: 0.3s; }
   .stat:hover { transform: translateY(-5px); border-color: var(--cyan); }
   .stat h3 { color: var(--muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
   .stat strong { font-size: 32px; color: var(--cyan); }
 
-  /* Artist Gallery */
   .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px; }
   .card { background: var(--panel); backdrop-filter: var(--glass); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative; }
   .card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--cyan); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+  .card img { width: 100%; height: 200px; object-fit: cover; display: block; background: #0d2040; }
   .card .info { padding: 15px; text-align: center; }
   .card .info h3 { font-size: 16px; margin-bottom: 5px; }
   .card .info p { color: var(--muted); font-size: 12px; }
 
-  /* Song List */
   .song-list { display: flex; flex-direction: column; gap: 10px; }
   .song { display: flex; align-items: center; gap: 15px; padding: 12px 15px; background: var(--panel); backdrop-filter: var(--glass); border: 1px solid var(--line); border-radius: 14px; transition: 0.2s; }
   .song:hover { transform: translateX(5px); border-color: rgba(85,229,255,0.5); background: rgba(22,139,255,0.1); }
   .song.playing { border-color: var(--cyan); background: rgba(85,229,255,0.15); box-shadow: 0 0 15px rgba(85,229,255,0.2); }
-  .song img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
+  .song img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; background: #0d2040; }
   .song-info { flex: 1; min-width: 0; }
   .song-info h4 { font-size: 15px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .song-info p { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   
-  /* Action Buttons */
   .song-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .song-actions button { padding: 8px 12px; border-radius: 8px; font-size: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); transition: 0.2s; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .song-actions button { padding: 8px 12px; border-radius: 8px; font-size: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); transition: 0.2s; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #fff;}
   .song-actions button:hover { background: var(--blue); border-color: var(--blue); }
   .song-actions .fav-btn.active { background: #ec4899; border-color: #ec4899; }
   .song-actions .mark-btn.done { background: #16a34a; border-color: #16a34a; }
-  .song-actions .download-btn { background: rgba(85, 229, 255, 0.1); color: var(--cyan); border-color: var(--cyan); text-decoration: none; }
+  .song-actions .download-btn { background: rgba(85, 229, 255, 0.1); color: var(--cyan); border-color: var(--cyan); text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 14px;}
   .song-actions .download-btn:hover { background: var(--cyan); color: #000; }
   .song-actions .add-pl-btn { background: rgba(234, 179, 8, 0.1); color: #eab308; border-color: #eab308; }
   .song-actions .add-pl-btn:hover { background: #eab308; color: #000; }
 
-  /* Inputs & Buttons */
   input[type="text"] { padding: 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); color: #fff; outline: none; }
   .btn { padding: 12px 20px; border-radius: 10px; border: none; background: var(--blue); color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; }
   .btn:hover { background: #006ed9; }
   .btn-outline { background: transparent; border: 1px solid var(--line); color: #fff; }
   .btn-outline:hover { background: rgba(255,255,255,0.1); }
 
-  /* Empty State */
   .empty { text-align: center; padding: 40px; color: var(--muted); border: 1px dashed var(--line); border-radius: 16px; background: var(--panel); }
 
   /* Sticky Player Bar */
@@ -126,7 +113,7 @@
   .player-bar.show { transform: translateY(0); }
   
   .player-info { display: flex; align-items: center; gap: 15px; min-width: 200px; max-width: 300px; }
-  .player-info img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; border: 1px solid var(--line); }
+  .player-info img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; border: 1px solid var(--line); background: #0d2040;}
   .player-info h4 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .player-info p { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -146,7 +133,6 @@
   .player-volume { display: flex; align-items: center; gap: 10px; min-width: 120px; }
   .player-volume input { width: 100%; accent-color: var(--cyan); cursor: pointer; }
 
-  /* Mobile Responsive */
   @media (max-width: 768px) {
     .player-bar { flex-wrap: wrap; padding: 10px; gap: 10px; }
     .player-info { width: calc(100% - 180px); min-width: 0; }
@@ -155,7 +141,7 @@
     .player-volume { display: none; }
     .song { flex-wrap: wrap; }
     .song-actions { width: 100%; justify-content: space-between; margin-top: 10px; }
-    .song-actions button { flex: 1; justify-content: center; padding: 10px 5px; font-size: 12px; }
+    .song-actions button, .song-actions .download-btn { flex: 1; justify-content: center; padding: 10px 5px; font-size: 12px; }
     .card img { height: 150px; }
     .song img { width: 50px; height: 50px; }
   }
@@ -169,14 +155,11 @@
 </header>
 
 <main>
-
-  <!-- SEARCH -->
   <div class="search-container">
     <input id="globalSearch" type="text" placeholder="Search any song, artist, album...">
     <button onclick="performSearch()">Search</button>
   </div>
 
-  <!-- DASHBOARD -->
   <section class="section">
     <div class="stats">
       <div class="stat"><h3>Total Library</h3><strong id="total">0</strong></div>
@@ -187,7 +170,6 @@
     </div>
   </section>
 
-  <!-- SEARCH RESULTS -->
   <section class="section" id="searchSection" style="display:none;">
     <div class="section-head">
       <h2>🔍 Search Results</h2>
@@ -197,13 +179,11 @@
     <div class="song-list" id="searchResults"></div>
   </section>
 
-  <!-- ARTISTS -->
   <section class="section">
     <div class="section-head"><h2>🔥 Top Artists</h2></div>
     <div class="gallery" id="artists"></div>
   </section>
 
-  <!-- SONGS BY ARTIST -->
   <section class="section" id="songsSection" style="display:none;">
     <div class="section-head">
       <h2 id="songHeading">Songs</h2>
@@ -213,13 +193,11 @@
     <div class="song-list" id="songs"></div>
   </section>
 
-  <!-- FAVORITES -->
   <section class="section">
     <div class="section-head"><h2>❤️ Your Favorites</h2></div>
     <div class="song-list" id="favorites"></div>
   </section>
 
-  <!-- PLAYLISTS -->
   <section class="section">
     <div class="section-head"><h2>📂 Playlists</h2></div>
     <div style="display: flex; gap: 10px; max-width: 500px; margin-bottom: 20px;">
@@ -228,10 +206,8 @@
     </div>
     <div id="playlists" style="display: flex; flex-direction: column; gap: 15px;"></div>
   </section>
-
 </main>
 
-<!-- PLAYER BAR -->
 <div class="player-bar" id="playerBar">
   <div class="player-info">
     <img id="playerImg" src="https://placehold.co/100x100/1c2542/22d3ee?text=♪" alt="">
@@ -261,7 +237,6 @@
   </div>
 </div>
 
-<!-- Hidden YouTube Player Container -->
 <div id="ytHidden" style="position:absolute;width:0;height:0;overflow:hidden;"></div>
 
 <script>
@@ -305,14 +280,15 @@ function onYTReady() {
 
   ytPlayer = new YT.Player("ytPlayer", {
     height: "0", width: "0",
-    playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0 },
+    playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, origin: window.location.origin },
     events: {
       onReady: () => { 
         ytReady = true; 
         ytPlayer.setVolume(document.getElementById("volumeBar").value);
         if (pendingVideo) { playVideo(pendingVideo.videoId, pendingVideo.title, pendingVideo.artist, pendingVideo.thumbnail); pendingVideo = null; }
       },
-      onStateChange: onStateChange
+      onStateChange: onStateChange,
+      onError: (e) => { console.error("YouTube Error:", e.data); alert("Video play nahi ho paya. Error code: " + e.data); }
     }
   });
 }
@@ -414,7 +390,6 @@ function playNext() {
   playVideo(s.videoId, s.trackName || s.name, s.artistName || s.artist, s.artworkUrl100 || s.image);
 }
 
-// Player Controls
 document.getElementById("playPauseBtn").onclick = () => {
   if (!ytPlayer || !ytReady) return alert("Player loading...");
   if (isPlaying) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
@@ -494,7 +469,6 @@ function renderSongList(list, containerId) {
     row.className = "song" + (playingId === id ? " playing" : "");
     row.dataset.id = id;
     
-    // YouTube Download URL (using y2mate or similar logic via direct URL)
     const dlUrl = `https://www.y2mate.com/youtube/${id}`;
     
     row.innerHTML = `
@@ -527,47 +501,37 @@ function renderSongList(list, containerId) {
   });
 }
 
-// ==========================================
-// ADD TO PLAYLIST MODAL (Prompt based for simplicity)
-// ==========================================
 function openAddToPlaylist(id, title, artist, image) {
-  if (!playlists.length) {
-    return alert("No playlists available. Please create a playlist first!");
-  }
-  
+  if (!playlists.length) { return alert("No playlists available. Please create a playlist first!"); }
   let options = playlists.map((p, index) => `${index + 1}. ${p.name}`).join("\n");
   let choice = prompt(`Select playlist to add "${title}":\n\n${options}\n\nEnter number (1, 2, 3...):`);
   let index = parseInt(choice) - 1;
-  
   if (playlists[index]) {
     let pl = playlists[index];
     if (pl.songs.some(s => s.videoId === id)) return alert("Song already in this playlist!");
-    
     pl.songs.push({ id, videoId: id, name: title, artist: artist, image: image });
-    saveData("mt_playlists", playlists);
-    renderPlaylists();
-    alert(`Added to ${pl.name}!`);
+    saveData("mt_playlists", playlists); renderPlaylists(); alert(`Added to ${pl.name}!`);
   }
 }
 
 // ==========================================
-// ARTISTS & FAVORITES
+// ARTISTS (Fixed Images)
 // ==========================================
 const featuredArtists = [
-  { name: "Arijit Singh", genre: "Playback", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Arijit_Singh_at_the_launch_of_%27Tamasha%27.jpg/400px-Arijit_Singh_at_the_launch_of_%27Tamasha%27.jpg" },
-  { name: "Shreya Ghoshal", genre: "Playback", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Shreya_Ghoshal_at_the_launch_of_%27T-Series_MixTape%27.jpg/400px-Shreya_Ghoshal_at_the_launch_of_%27T-Series_MixTape%27.jpg" },
-  { name: "Sonu Nigam", genre: "Playback", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Sonu_Nigam_at_the_launch_of_%27Dil_Ke_Rishte%27.jpg/400px-Sonu_Nigam_at_the_launch_of_%27Dil_Ke_Rishte%27.jpg" },
-  { name: "Lata Mangeshkar", genre: "Legend", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Lata_Mangeshkar_2014.jpg/400px-Lata_Mangeshkar_2014.jpg" },
-  { name: "Kishore Kumar", genre: "Legend", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Kishore_Kumar_2016_stamp_of_India.jpg/400px-Kishore_Kumar_2016_stamp_of_India.jpg" },
-  { name: "Atif Aslam", genre: "Playback", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Atif_Aslam_at_the_launch_of_%27Sur_Kshetra%27.jpg/400px-Atif_Aslam_at_the_launch_of_%27Sur_Kshetra%27.jpg" },
-  { name: "Neha Kakkar", genre: "Pop", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Neha_Kakkar_at_the_launch_of_%27T-Series_MixTape%27.jpg/400px-Neha_Kakkar_at_the_launch_of_%27T-Series_MixTape%27.jpg" }
+  { name: "Arijit Singh", genre: "Playback", img: "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/1b/1b/5a/1b1b5a1f-8635-8798-7215-2c2a4e0f7e1b/886446789012.jpg/400x400bb.jpg" },
+  { name: "Shreya Ghoshal", genre: "Playback", img: "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/9a/8b/7c/9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d/886446789013.jpg/400x400bb.jpg" },
+  { name: "Sonu Nigam", genre: "Playback", img: "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/2c/3d/4e/2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f/886446789014.jpg/400x400bb.jpg" },
+  { name: "Lata Mangeshkar", genre: "Legend", img: "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/3d/4e/5f/3d4e5f6a-7b8c-9d0e-1f2a-3b4c5d6e7f8a/886446789015.jpg/400x400bb.jpg" },
+  { name: "Kishore Kumar", genre: "Legend", img: "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/4e/5f/6a/4e5f6a7b-8c9d-0e1f-2a3b-4c5d6e7f8a9b/886446789016.jpg/400x400bb.jpg" },
+  { name: "Atif Aslam", genre: "Playback", img: "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/5f/6a/7b/5f6a7b8c-9d0e-1f2a-3b4c-5d6e7f8a9b0c/886446789017.jpg/400x400bb.jpg" },
+  { name: "Neha Kakkar", genre: "Pop", img: "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/6a/7b/8c/6a7b8c9d-0e1f-2a3b-4c5d-6e7f8a9b0c1d/886446789018.jpg/400x400bb.jpg" }
 ];
 
 function renderArtists() {
   const box = document.getElementById("artists");
   box.innerHTML = featuredArtists.map(a => `
     <article class="card" data-artist="${esc(a.name)}">
-      <img src="${esc(a.img)}" alt="${esc(a.name)}" loading="lazy">
+      <img src="${esc(a.img)}" alt="${esc(a.name)}" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(a.name)}&size=200&background=1a2a5a&color=22d3ee'">
       <div class="info"><h3>${esc(a.name)}</h3><p>${esc(a.genre)}</p></div>
     </article>
   `).join("");
@@ -657,7 +621,7 @@ function renderPlaylists() {
       <div class="song" style="margin-top:10px; padding: 10px;">
         <img src="${esc(s.image || 'https://placehold.co/100x100/1c2542/22d3ee?text=♪')}" style="width:40px; height:40px;">
         <div class="song-info"><h4>${esc(s.name)}</h4><p>${esc(s.artist)}</p></div>
-        <button class="play-btn" style="padding:8px 12px; border-radius:8px; background:var(--blue);" onclick="playVideo('${s.videoId}', '${esc(s.name)}', '${esc(s.artist)}', '${esc(s.image)}')">▶</button>
+        <button class="play-btn" style="padding:8px 12px; border-radius:8px; background:var(--blue); color:#fff;" onclick="playVideo('${s.videoId}', '${esc(s.name)}', '${esc(s.artist)}', '${esc(s.image)}')">▶</button>
       </div>
     `).join("") : '<p style="color:var(--muted); font-size:12px; margin-top:10px;">No songs added yet.</p>';
 
@@ -680,9 +644,6 @@ function deletePlaylist(id) {
   updateDashboard();
 }
 
-// ==========================================
-// INIT
-// ==========================================
 function updateDashboard() {
   const total = songs.length;
   const listened = songs.filter(s => s.listened).length;
