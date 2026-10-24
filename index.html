@@ -43,10 +43,10 @@
   .search-bar button { background: var(--blue); border: none; color: #fff; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
   /* USER PROFILE */
-  .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .user-profile { display: flex; align-items: center; gap: 10px; }
   .user-profile img { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--cyan); object-fit: cover; }
-  .user-profile span { font-size: 14px; font-weight: bold; }
-  .logout-btn { background: #ff4444; color: #fff; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; margin-left: 10px; }
+  .user-profile span { font-size: 14px; font-weight: bold; display: none; }
+  .logout-btn { background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; font-size: 12px; cursor: pointer; font-weight: bold; }
 
   /* MAIN CONTENT */
   main { max-width: 1200px; margin: 80px auto 0; padding: 0 20px; }
@@ -151,7 +151,7 @@
 <div id="loginScreen">
   <div class="login-logo">♪ BLUE<span>WAVE</span></div>
   <p style="color: var(--muted); margin-bottom: 20px;">Login to save favorites & playlists across devices.</p>
-  <button class="login-btn" onclick="signInWithGoogle()">
+  <button class="login-btn" onclick="window.signInWithGoogle()">
     <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
     Continue with Google
   </button>
@@ -165,16 +165,15 @@
   </div>
 
   <header>
-    <div class="logo">♪ BLUE<span>WAVE</span></div>
+    <div class="logo" onclick="window.location.reload()">♪ BLUE<span>WAVE</span></div>
     <div class="search-bar">
       <span>🔍</span>
       <input id="globalSearch" type="text" placeholder="Search songs, artists...">
-      <button onclick="performSearch()">Search</button>
+      <button onclick="window.performSearch()">Search</button>
     </div>
     <div class="user-profile">
-      <span id="userName">User</span>
       <img id="userAvatar" src="" alt="Profile">
-      <button class="logout-btn" onclick="logout()">Logout</button>
+      <button class="logout-btn" onclick="window.logout()">Logout</button>
     </div>
   </header>
 
@@ -197,7 +196,7 @@
   </main>
 
   <!-- MINI PLAYER -->
-  <div class="player-bar" id="playerBar" onclick="openFullPlayer()">
+  <div class="player-bar" id="playerBar" onclick="window.openFullPlayer()">
     <div class="player-left">
       <img id="miniImg" src="https://placehold.co/100x100/222/22d3ee?text=♪" alt="">
       <div><h4 id="miniTitle">Song Title</h4><p id="miniArtist">Artist Name</p></div>
@@ -210,7 +209,7 @@
       </div>
       <div class="progress-container">
         <span id="miniCur">0:00</span>
-        <div class="progress-track" onclick="seekMini(event)"><div class="progress-fill" id="miniFill"></div></div>
+        <div class="progress-track" onclick="window.seekMini(event)"><div class="progress-fill" id="miniFill"></div></div>
         <span id="miniDur">0:00</span>
       </div>
     </div>
@@ -224,7 +223,7 @@
   <div class="full-player" id="fullPlayer">
     <div class="fp-bg-art" id="fpBgArt"></div>
     <div class="fp-header">
-      <button class="fp-close" onclick="closeFullPlayer()">⌄</button>
+      <button class="fp-close" onclick="window.closeFullPlayer()">⌄</button>
       <div class="fp-context">Playing from<span>Search</span></div>
       <div style="width: 36px;"></div>
     </div>
@@ -233,13 +232,13 @@
       <div class="fp-info">
         <div class="fp-text"><h1 id="fpTitle">Song Title</h1><p id="fpArtist">Artist Name</p></div>
         <div class="fp-actions">
-          <button id="fpFavBtn" onclick="toggleFavFull()">☆</button>
+          <button id="fpFavBtn" onclick="window.toggleFavFull()">☆</button>
           <button>⋮</button>
         </div>
       </div>
       <div class="fp-progress">
         <div class="fp-time"><span id="fpCur">0:00</span><span id="fpDur">0:00</span></div>
-        <div class="fp-track" onclick="seekFull(event)"><div class="fp-fill" id="fpFill"></div></div>
+        <div class="fp-track" onclick="window.seekFull(event)"><div class="fp-fill" id="fpFill"></div></div>
       </div>
       <div class="fp-controls">
         <button class="icon-btn" id="fpPrev">⏮</button>
@@ -299,7 +298,6 @@ onAuthStateChanged(auth, async (user) => {
     window.currentUser = user;
     document.getElementById("loginScreen").style.display = "none";
     document.getElementById("appContainer").style.display = "block";
-    document.getElementById("userName").textContent = user.displayName || "User";
     if (user.photoURL) document.getElementById("userAvatar").src = user.photoURL;
 
     // Load Favorites from Firestore
@@ -311,9 +309,9 @@ onAuthStateChanged(auth, async (user) => {
       await setDoc(docRef, { favorites: [] });
       window.favorites = [];
     }
-    // Load home content after data ready
+    
+    // Load home content
     if(window.renderHome) window.renderHome();
-    if(window.performSearch && document.getElementById("globalSearch").value) window.performSearch(true);
   } else {
     window.currentUser = null;
     document.getElementById("loginScreen").style.display = "flex";
@@ -448,14 +446,12 @@ window.updateFavButton = function() {
   else { btn.textContent = "☆"; btn.classList.remove("active"); }
 };
 
-function toggleFavFull() {
+window.toggleFavFull = function() {
   if(!window.currentUser) return alert("Please login first.");
   if(window.toggleFavFirestore) {
     window.toggleFavFirestore(playingId);
-    // Toggle in UI immediately
-    const btn = document.getElementById("fpFavBtn");
-    if (window.favorites.includes(playingId)) { btn.textContent = "★"; btn.classList.add("active"); }
-    else { btn.textContent = "☆"; btn.classList.remove("active"); }
+    if (window.favorites.includes(playingId)) { document.getElementById("fpFavBtn").textContent = "★"; document.getElementById("fpFavBtn").classList.add("active"); }
+    else { document.getElementById("fpFavBtn").textContent = "☆"; document.getElementById("fpFavBtn").classList.remove("active"); }
   }
 }
 
@@ -479,11 +475,11 @@ function togglePlayPause() {
   }
 }
 
-function openFullPlayer() { if(playingId) document.getElementById("fullPlayer").classList.add("active"); }
-function closeFullPlayer() { document.getElementById("fullPlayer").classList.remove("active"); }
+window.openFullPlayer = function() { if(playingId) document.getElementById("fullPlayer").classList.add("active"); }
+window.closeFullPlayer = function() { document.getElementById("fullPlayer").classList.remove("active"); }
 
-function seekMini(e) { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); seekTo((e.clientX - rect.left) / rect.width); }
-function seekFull(e) { const rect = e.currentTarget.getBoundingClientRect(); seekTo((e.clientX - rect.left) / rect.width); }
+window.seekMini = function(e) { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); seekTo((e.clientX - rect.left) / rect.width); }
+window.seekFull = function(e) { const rect = e.currentTarget.getBoundingClientRect(); seekTo((e.clientX - rect.left) / rect.width); }
 function seekTo(pct) {
   if (activeSource === "youtube" && ytPlayer && ytReady) ytPlayer.seekTo(pct * ytPlayer.getDuration(), true);
   else if (activeSource === "deezer" && audioEl.duration) audioEl.currentTime = pct * audioEl.duration;
@@ -505,23 +501,20 @@ document.getElementById("fpNext").onclick = playNext;
 document.getElementById("fpPrev").onclick = playPrev;
 document.getElementById("fpVol").oninput = (e) => setVolume(e.target.value);
 
-window.performSearch = async function(isSilent = false) {
+window.performSearch = async function() {
   const q = document.getElementById("globalSearch").value.trim();
   if (!q) return;
-  if(!isSilent) {
-    document.getElementById("loadingOverlay").style.display = "flex";
-    document.getElementById("homeSections").style.display = "none";
-    document.getElementById("searchSection").style.display = "block";
-  }
+  document.getElementById("loadingOverlay").style.display = "flex";
+  document.getElementById("homeSections").style.display = "none";
+  document.getElementById("searchSection").style.display = "block";
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(q)}`);
     const data = await res.json();
-    if(!isSilent) document.getElementById("loadingOverlay").style.display = "none";
+    document.getElementById("loadingOverlay").style.display = "none";
 
     if (!data.results || !data.results.length) {
-      if(!isSilent) document.getElementById("searchResults").innerHTML = '<div style="color:#aaa; padding:20px;">No results found.</div>';
-      return;
+      document.getElementById("searchResults").innerHTML = '<div style="color:#aaa; padding:20px;">No results found.</div>'; return;
     }
     const mapped = data.results.map(r => ({
       videoId: r.videoId, trackName: r.title, artistName: r.channel,
@@ -531,10 +524,8 @@ window.performSearch = async function(isSilent = false) {
     queue = mapped;
     renderList(mapped, "searchResults");
   } catch (e) {
-    if(!isSilent) {
-      document.getElementById("loadingOverlay").style.display = "none";
-      alert("Search failed. Server so raha hai.");
-    }
+    document.getElementById("loadingOverlay").style.display = "none";
+    alert("Search failed. Server so raha hai.");
   }
 }
 
@@ -561,7 +552,6 @@ function renderList(list, containerId) {
       e.stopPropagation();
       if(window.toggleFavFirestore) {
         window.toggleFavFirestore(id);
-        // immediate UI update
         const btn = row.querySelector(".fav-btn");
         if(window.favorites.includes(id)) { btn.classList.add("active"); btn.textContent = "❤️"; }
         else { btn.classList.remove("active"); btn.textContent = "🤍"; }
@@ -621,7 +611,7 @@ window.renderHome = function() {
       </div>
       <h4 style="text-align:center;">${esc(a.name)}</h4><p style="text-align:center;">${esc(a.genre)}</p>
     `;
-    card.onclick = () => { document.getElementById("globalSearch").value = a.name; performSearch(); };
+    card.onclick = () => { document.getElementById("globalSearch").value = a.name; window.performSearch(); };
     artistBox.appendChild(card);
   });
 };
