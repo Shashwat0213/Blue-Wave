@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#000000">
 <title>BlueWave Music - Premium</title>
 <link rel="stylesheet" href="style.css">
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -56,10 +59,23 @@
 
     <!-- HOME SECTION -->
     <div id="homeSections">
+      <!-- SLEEP TIMER -->
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+        <button onclick="window.setSleepTimer(15)" style="background:var(--surface); color:#fff; border:1px solid var(--line); padding:8px 15px; border-radius:20px; font-size:12px; cursor:pointer;">🌙 Sleep 15m</button>
+        <button onclick="window.setSleepTimer(30)" style="background:var(--surface); color:#fff; border:1px solid var(--line); padding:8px 15px; border-radius:20px; font-size:12px; cursor:pointer;">🌙 Sleep 30m</button>
+        <button onclick="window.setSleepTimer(0)" style="background:var(--surface); color:#ef4444; border:1px solid #ef4444; padding:8px 15px; border-radius:20px; font-size:12px; cursor:pointer;">✕ Cancel</button>
+      </div>
+
+      <!-- RECENTLY PLAYED -->
+      <h2 class="section-title">Recently Played</h2>
+      <div class="h-scroll" id="recentlyPlayed"></div>
+
       <h2 class="section-title">Quick picks</h2>
       <div class="h-scroll" id="quickPicks"></div>
+      
       <h2 class="section-title">Trending songs for you</h2>
       <div class="h-scroll" id="trendingSongs"></div>
+      
       <h2 class="section-title">Top Artists</h2>
       <div class="h-scroll" id="topArtists"></div>
     </div>
@@ -152,6 +168,17 @@
   <div id="video-container" style="position:fixed; bottom:-9999px; left:-9999px; width:300px; height:300px;"><div id="ytPlayer"></div></div>
   <audio id="audioPlayer"></audio>
 </div>
+
+<!-- SERVICE WORKER (PWA) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW registered!'))
+        .catch(err => console.log('SW registration failed:', err));
+    });
+  }
+</script>
 
 <!-- SCRIPTS -->
 <script type="module" src="firebase.js"></script>
