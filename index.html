@@ -6,13 +6,13 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#000000">
 <title>BlueWave Music - Premium</title>
-<!-- CSS Link -->
-<link rel="stylesheet" href="style.css">
+<!-- Force browser to load new CSS -->
+<link rel="stylesheet" href="style.css?v=4">
 <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-<!-- LOGIN MODAL (पॉपअप) -->
+<!-- LOGIN MODAL -->
 <div id="loginModal" class="modal-overlay" style="display: none;">
   <div class="modal-content glass-panel">
     <button class="modal-close" onclick="window.closeLoginModal()">✕</button>
@@ -42,13 +42,11 @@
       <button onclick="window.performSearch()">Search</button>
     </div>
     
-    <!-- USER PROFILE (लॉगिन के बाद दिखेगा) -->
     <div class="user-profile" id="userProfile" style="display: none;">
       <img id="userAvatar" src="https://placehold.co/100x100/222/22d3ee?text=U" alt="Profile">
       <button class="logout-btn" onclick="window.logout()">Logout</button>
     </div>
     
-    <!-- LOGIN BUTTON (बिना लॉगिन दिखेगा) -->
     <div class="user-profile" id="loginBtnHeader">
       <button class="login-header-btn glass-btn" onclick="window.openLoginModal()">Login</button>
     </div>
@@ -98,7 +96,6 @@
     </div>
   </main>
 
-  <!-- MINI PLAYER -->
   <div class="player-bar glass-panel" id="playerBar" onclick="window.openFullPlayer()">
     <div class="player-left">
       <div class="equalizer"><span></span><span></span><span></span></div>
@@ -123,7 +120,6 @@
     </div>
   </div>
 
-  <!-- FULL PLAYER -->
   <div class="full-player" id="fullPlayer">
     <div class="fp-bg-art" id="fpBgArt"></div>
     
