@@ -18,6 +18,7 @@ const audioEl = document.getElementById("audioPlayer");
 function wakeUpServer() { fetch(BACKEND_URL).catch(()=>{}); }
 wakeUpServer(); setInterval(wakeUpServer, 10 * 60 * 1000);
 
+// SLEEP TIMER
 window.setSleepTimer = function(minutes) {
   if(sleepTimerId) clearTimeout(sleepTimerId);
   if(minutes === 0) { alert("Timer cancelled."); return; }
@@ -28,6 +29,7 @@ window.setSleepTimer = function(minutes) {
   }, minutes * 60 * 1000);
 };
 
+// RECENTLY PLAYED
 function addToRecentlyPlayed(song) {
   let recent = JSON.parse(localStorage.getItem("recentSongs") || "[]");
   recent = recent.filter(s => s.videoId !== song.videoId);
@@ -51,6 +53,7 @@ window.renderRecentlyPlayed = function() {
   });
 };
 
+// TABS LOGIC (With Guest Mode Check)
 window.switchTab = function(tab) {
   document.getElementById("tab-home").classList.remove("active");
   document.getElementById("tab-library").classList.remove("active");
@@ -61,6 +64,11 @@ window.switchTab = function(tab) {
     document.getElementById("homeSections").style.display = "block";
     document.getElementById("librarySection").style.display = "none";
   } else {
+    // Check if User is Logged In
+    if(!window.currentUser) {
+      window.openLoginModal();
+      return; 
+    }
     document.getElementById("tab-library").classList.add("active");
     document.getElementById("homeSections").style.display = "none";
     document.getElementById("librarySection").style.display = "block";
@@ -68,6 +76,7 @@ window.switchTab = function(tab) {
   }
 };
 
+// YOUTUBE SETUP
 function loadYT() {
   if (window.YT && window.YT.Player) { onYTReady(); return; }
   const s = document.createElement("script");
@@ -140,7 +149,7 @@ window.updateFavButton = function() {
 };
 
 window.toggleFavFull = function() {
-  if(!window.currentUser) return alert("Please login first.");
+  if(!window.currentUser) { window.openLoginModal(); return; }
   if(window.toggleFavFirestore) window.toggleFavFirestore(playingId);
   updateFavButton();
 }
@@ -252,7 +261,12 @@ function renderList(list, containerId) {
         <button class="fav-btn ${isFav ? 'active' : ''}">${isFav ? '❤️' : '🤍'}</button>
         <a href="${dlUrl}" target="_blank" title="Download">⬇</a>
       </div>`;
-    row.querySelector(".fav-btn").onclick = (e) => { e.stopPropagation(); window.toggleFavFirestore(id); renderList(list, containerId); };
+    row.querySelector(".fav-btn").onclick = (e) => { 
+      e.stopPropagation(); 
+      if(!window.currentUser) { window.openLoginModal(); return; } // Guest Check
+      window.toggleFavFirestore(id); 
+      renderList(list, containerId); 
+    };
     row.onclick = () => { queue = list; queueIdx = i; playCurrentQueueItem(); };
     box.appendChild(row);
   });
@@ -270,7 +284,7 @@ function renderCardList(list, containerId) {
 
 window.renderLibrary = function() {
   const favBox = document.getElementById("favList"); favBox.innerHTML = "";
-  if (window.favorites.length === 0) { favBox.innerHTML = '<p style="color:var(--muted); font-size:14px;">No favorites yet.</p>'; }
+  if (!window.favorites || window.favorites.length === 0) { favBox.innerHTML = '<p style="color:var(--muted); font-size:14px;">No favorites yet.</p>'; }
   else {
     window.favorites.forEach(id => {
       const row = document.createElement("div"); row.className = "song-row";
@@ -280,7 +294,7 @@ window.renderLibrary = function() {
   }
 
   const plBox = document.getElementById("playlistsContainer"); plBox.innerHTML = "";
-  if (window.userPlaylists.length === 0) { plBox.innerHTML = '<p style="color:var(--muted); font-size:14px;">No playlists yet. Create one!</p>'; }
+  if (!window.userPlaylists || window.userPlaylists.length === 0) { plBox.innerHTML = '<p style="color:var(--muted); font-size:14px;">No playlists yet. Create one!</p>'; }
   else {
     window.userPlaylists.forEach((pl, index) => {
       const card = document.createElement("div");
@@ -324,7 +338,7 @@ window.playPlaylistSong = function(plIndex, songIndex) {
 };
 
 window.createNewPlaylist = function() {
-  if(!window.currentUser) return alert("Login first!");
+  if(!window.currentUser) { window.openLoginModal(); return; } // Guest Check
   const name = prompt("Enter playlist name:");
   if(name) { window.savePlaylistsFirestore([...window.userPlaylists, { name: name, songs: [] }]); }
 }
@@ -336,7 +350,7 @@ window.deletePlaylist = function(index) {
 
 window.showAddToPlaylist = function(e, id, title, artist, image) {
   e.stopPropagation();
-  if(!window.currentUser) return alert("Login first!");
+  if(!window.currentUser) { window.openLoginModal(); return; } // Guest Check
   if(window.userPlaylists.length === 0) return alert("Create a playlist first in Library tab.");
   
   let opts = window.userPlaylists.map((p, i) => `${i+1}. ${p.name}`).join("\n");
