@@ -11,17 +11,55 @@ let progressTimer = null;
 let pendingVideo = null;
 let activeSource = "youtube"; 
 let currentPlayingData = null;
+let sleepTimerId = null;
+let currentPlaylistView = null; // Track which playlist is open
 
 const audioEl = document.getElementById("audioPlayer");
 
 function wakeUpServer() { fetch(BACKEND_URL).catch(()=>{}); }
 wakeUpServer(); setInterval(wakeUpServer, 10 * 60 * 1000);
 
+// SLEEP TIMER
+window.setSleepTimer = function(minutes) {
+  if(sleepTimerId) clearTimeout(sleepTimerId);
+  if(minutes === 0) { alert("Timer cancelled."); return; }
+  alert("Sleep timer set for " + minutes + " minutes.");
+  sleepTimerId = setTimeout(() => {
+    if(isPlaying) togglePlayPause();
+    alert("Sleep timer completed. Music paused.");
+  }, minutes * 60 * 1000);
+};
+
+// RECENTLY PLAYED
+function addToRecentlyPlayed(song) {
+  let recent = JSON.parse(localStorage.getItem("recentSongs") || "[]");
+  recent = recent.filter(s => s.videoId !== song.videoId);
+  recent.unshift(song);
+  if(recent.length > 10) recent.pop();
+  localStorage.setItem("recentSongs", JSON.stringify(recent));
+  renderRecentlyPlayed();
+}
+
+window.renderRecentlyPlayed = function() {
+  let recent = JSON.parse(localStorage.getItem("recentSongs") || "[]");
+  const box = document.getElementById("recentlyPlayed");
+  if(!box) return;
+  box.innerHTML = "";
+  if(recent.length === 0) { box.innerHTML = '<p style="color:var(--muted); font-size:14px;">No songs played yet.</p>'; return; }
+  recent.forEach((s, i) => {
+    const card = document.createElement("div"); card.className = "card";
+    card.innerHTML = `<div class="card-img-wrapper"><img src="${esc(s.artworkUrl100)}" onerror="this.src='${fallbackImg}'"><div class="play-overlay"></div></div><h4>${esc(s.trackName)}</h4><p>${esc(s.artistName)}</p>`;
+    card.onclick = () => { queue = recent; queueIdx = i; playCurrentQueueItem(); };
+    box.appendChild(card);
+  });
+};
+
 // TABS LOGIC
 window.switchTab = function(tab) {
   document.getElementById("tab-home").classList.remove("active");
   document.getElementById("tab-library").classList.remove("active");
   document.getElementById("searchSection").style.display = "none";
+  currentPlaylistView = null; // Reset playlist view
 
   if (tab === 'home') {
     document.getElementById("tab-home").classList.add("active");
@@ -83,12 +121,14 @@ function playYouTube(videoId, title, artist, thumbnail) {
   updatePlayerUI(title, artist, thumbnail);
   ytPlayer.loadVideoById(videoId);
   playingId = videoId; updateFavButton();
+  addToRecentlyPlayed({ videoId, trackName: title, artistName: artist, artworkUrl100: thumbnail });
 }
 function playDeezer(previewUrl, title, artist, thumbnail, id) {
   activeSource = "deezer"; if (ytPlayer && ytReady) ytPlayer.stopVideo();
   updatePlayerUI(title, artist + " (Preview)", thumbnail);
   audioEl.src = previewUrl; audioEl.play().then(() => { isPlaying = true; updatePlayIcons("⏸"); startProgress(); }).catch(()=>{});
   playingId = id; updateFavButton();
+  addToRecentlyPlayed({ videoId: id, trackName: title, artistName: artist, artworkUrl100: thumbnail });
 }
 function updatePlayerUI(title, artist, thumbnail) {
   document.getElementById("miniTitle").textContent = title; document.getElementById("miniArtist").textContent = artist;
@@ -189,7 +229,7 @@ function renderCardList(list, containerId) {
   });
 }
 
-// LIBRARY LOGIC
+// LIBRARY LOGIC (UPDATED)
 window.renderLibrary = function() {
   const favBox = document.getElementById("favList"); favBox.innerHTML = "";
   if (window.favorites.length === 0) { favBox.innerHTML = '<p style="color:var(--muted); font-size:14px;">No favorites yet.</p>'; }
@@ -207,10 +247,51 @@ window.renderLibrary = function() {
     window.userPlaylists.forEach((pl, index) => {
       const card = document.createElement("div");
       card.style = "background:var(--surface); padding:15px; border-radius:10px; border:1px solid var(--line);";
-      card.innerHTML = `<div style="display:flex; justify-content:space-between;"><h4>${esc(pl.name)}</h4><button onclick="window.deletePlaylist(${index})" style="background:transparent; border:none; color:#ef4444; cursor:pointer;">Delete</button></div><p style="color:var(--muted); font-size:13px; margin-top:5px;">${pl.songs.length} songs</p>`;
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h4 style="cursor:pointer; color:var(--cyan);" onclick="window.viewPlaylistSongs(${index})">📁 ${esc(pl.name)}</h4>
+            <button onclick="window.deletePlaylist(${index})" style="background:transparent; border:none; color:#ef4444; cursor:pointer;">Delete</button>
+        </div>
+        <p style="color:var(--muted); font-size:13px; margin-top:5px;">${pl.songs.length} songs</p>
+        <div id="playlist-songs-${index}" style="display:none; margin-top:10px;"></div>
+      `;
       plBox.appendChild(card);
     });
   }
+};
+
+window.viewPlaylistSongs = function(index) {
+  const box = document.getElementById(`playlist-songs-${index}`);
+  const pl = window.userPlaylists[index];
+  
+  if(box.style.display === "block") { box.style.display = "none"; return; }
+  box.style.display = "block";
+  box.innerHTML = "";
+  
+  if(pl.songs.length === 0) { box.innerHTML = '<p style="color:var(--muted); font-size:12px;">Empty playlist.</p>'; return; }
+  
+  pl.songs.forEach((s, i) => {
+    const row = document.createElement("div"); row.className = "song-row";
+    row.style = "padding: 8px; background: var(--bg); margin-bottom: 5px; border-radius: 5px;";
+    row.innerHTML = `
+      <img src="${esc(s.image || fallbackImg)}" style="width:40px; height:40px; border-radius:4px;">
+      <div class="song-info"><h4 style="font-size:13px;">${esc(s.title)}</h4><p style="font-size:11px;">${esc(s.artist)}</p></div>
+      <button onclick="window.playPlaylistSong(${index}, ${i})" style="background:var(--blue); border:none; color:#fff; padding:5px 10px; border-radius:5px; cursor:pointer;">▶</button>
+    `;
+    box.appendChild(row);
+  });
+};
+
+window.playPlaylistSong = function(plIndex, songIndex) {
+  const pl = window.userPlaylists[plIndex];
+  const s = pl.songs[songIndex];
+  // Convert playlist song format to standard queue format
+  const mappedQueue = pl.songs.map(song => ({
+      videoId: song.id, trackName: song.title, artistName: song.artist, artworkUrl100: song.image, source: "youtube"
+  }));
+  queue = mappedQueue;
+  queueIdx = songIndex;
+  playCurrentQueueItem();
 };
 
 window.createNewPlaylist = function() {
@@ -239,6 +320,9 @@ window.showAddToPlaylist = function(e, id, title, artist, image) {
   
   if(window.userPlaylists[idx]) {
     let newPl = [...window.userPlaylists];
+    // Check if song already exists
+    if(newPl[idx].songs.some(s => s.id === id)) return alert("Song already in this playlist!");
+    
     newPl[idx].songs.push({ id, title, artist, image });
     window.savePlaylistsFirestore(newPl);
     alert("Added to playlist!");
@@ -307,6 +391,8 @@ const artistData = [
 window.renderHome = function() {
   renderCardList(quickPicksData, "quickPicks");
   renderCardList(trendingData, "trendingSongs");
+  renderRecentlyPlayed();
+  
   const artistBox = document.getElementById("topArtists"); artistBox.innerHTML = "";
   artistData.forEach(a => {
     const card = document.createElement("div"); card.className = "card";
