@@ -12,14 +12,12 @@ let pendingVideo = null;
 let activeSource = "youtube"; 
 let currentPlayingData = null;
 let sleepTimerId = null;
-let currentPlaylistView = null; // Track which playlist is open
 
 const audioEl = document.getElementById("audioPlayer");
 
 function wakeUpServer() { fetch(BACKEND_URL).catch(()=>{}); }
 wakeUpServer(); setInterval(wakeUpServer, 10 * 60 * 1000);
 
-// SLEEP TIMER
 window.setSleepTimer = function(minutes) {
   if(sleepTimerId) clearTimeout(sleepTimerId);
   if(minutes === 0) { alert("Timer cancelled."); return; }
@@ -30,7 +28,6 @@ window.setSleepTimer = function(minutes) {
   }, minutes * 60 * 1000);
 };
 
-// RECENTLY PLAYED
 function addToRecentlyPlayed(song) {
   let recent = JSON.parse(localStorage.getItem("recentSongs") || "[]");
   recent = recent.filter(s => s.videoId !== song.videoId);
@@ -54,12 +51,10 @@ window.renderRecentlyPlayed = function() {
   });
 };
 
-// TABS LOGIC
 window.switchTab = function(tab) {
   document.getElementById("tab-home").classList.remove("active");
   document.getElementById("tab-library").classList.remove("active");
   document.getElementById("searchSection").style.display = "none";
-  currentPlaylistView = null; // Reset playlist view
 
   if (tab === 'home') {
     document.getElementById("tab-home").classList.add("active");
@@ -73,7 +68,6 @@ window.switchTab = function(tab) {
   }
 };
 
-// YOUTUBE SETUP
 function loadYT() {
   if (window.YT && window.YT.Player) { onYTReady(); return; }
   const s = document.createElement("script");
@@ -151,6 +145,51 @@ window.toggleFavFull = function() {
   updateFavButton();
 }
 
+// QUEUE LOGIC
+window.addToQueue = function(e, id, title, artist, image) {
+  e.stopPropagation();
+  queue.push({ videoId: id, trackName: title, artistName: artist, artworkUrl100: image, source: "youtube" });
+  alert("Added to Queue!");
+};
+
+window.showQueue = function() {
+  document.getElementById("queueOverlay").classList.add("show");
+  const box = document.getElementById("queueList"); box.innerHTML = "";
+  
+  if(queue.length === 0) { box.innerHTML = '<p style="text-align:center; color:#aaa;">Queue is empty.</p>'; return; }
+  
+  queue.forEach((s, i) => {
+    const isPlayingNow = i === queueIdx;
+    const row = document.createElement("div");
+    row.className = "song-row" + (isPlayingNow ? " playing" : "");
+    row.innerHTML = `
+      <img src="${esc(s.artworkUrl100)}" onerror="this.src='${fallbackImg}'">
+      <div class="song-info"><h4>${esc(s.trackName)}</h4><p>${esc(s.artistName)}</p></div>
+      ${isPlayingNow ? '<span style="color:var(--cyan); font-size:12px; font-weight:bold;">PLAYING</span>' : ''}
+    `;
+    row.onclick = () => { queueIdx = i; playCurrentQueueItem(); window.showQueue(); };
+    box.appendChild(row);
+  });
+};
+window.closeQueue = function() { document.getElementById("queueOverlay").classList.remove("show"); };
+
+// SHARE LOGIC
+window.shareSong = function() {
+  if(!currentPlayingData) return;
+  const shareData = {
+    title: 'BlueWave Music',
+    text: `Listen to ${currentPlayingData.title} by ${currentPlayingData.artist} on BlueWave!`,
+    url: window.location.href
+  };
+  
+  if (navigator.share) {
+    navigator.share(shareData).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(`${shareData.text} - ${shareData.url}`);
+    alert("Link copied to clipboard!");
+  }
+};
+
 function playCurrentQueueItem() {
   const s = queue[queueIdx]; if (!s) return;
   if (s.source === "deezer" || s.previewUrl) playDeezer(s.previewUrl, s.trackName, s.artistName, s.artworkUrl100, s.videoId);
@@ -164,7 +203,7 @@ function togglePlayPause() {
 }
 
 window.openFullPlayer = function() { if(playingId) document.getElementById("fullPlayer").classList.add("active"); }
-window.closeFullPlayer = function() { document.getElementById("fullPlayer").classList.remove("active"); document.getElementById("lyricsOverlay").classList.remove("show"); }
+window.closeFullPlayer = function() { document.getElementById("fullPlayer").classList.remove("active"); document.getElementById("lyricsOverlay").classList.remove("show"); document.getElementById("queueOverlay").classList.remove("show"); }
 window.seekMini = function(e) { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); seekTo((e.clientX - rect.left) / rect.width); }
 window.seekFull = function(e) { const rect = e.currentTarget.getBoundingClientRect(); seekTo((e.clientX - rect.left) / rect.width); }
 function seekTo(pct) { if (activeSource === "youtube" && ytPlayer && ytReady) ytPlayer.seekTo(pct * ytPlayer.getDuration(), true); else if (activeSource === "deezer" && audioEl.duration) audioEl.currentTime = pct * audioEl.duration; }
@@ -179,7 +218,6 @@ document.getElementById("fpNext").onclick = playNext;
 document.getElementById("fpPrev").onclick = playPrev;
 document.getElementById("fpVol").oninput = (e) => setVolume(e.target.value);
 
-// SEARCH & RENDER
 window.performSearch = async function() {
   const q = document.getElementById("globalSearch").value.trim(); if (!q) return;
   document.getElementById("loadingOverlay").style.display = "flex";
@@ -209,6 +247,7 @@ function renderList(list, containerId) {
       <img src="${esc(s.artworkUrl100)}" alt="" onerror="this.src='${fallbackImg}'">
       <div class="song-info"><h4>${esc(s.trackName)}</h4><p>${esc(s.artistName)}</p></div>
       <div class="action-btns">
+        <button class="queue-btn" title="Play Next" onclick="window.addToQueue(event, '${id}', '${esc(s.trackName)}', '${esc(s.artistName)}', '${esc(s.artworkUrl100)}')">⏭</button>
         <button class="add-pl-btn" title="Add to Playlist" onclick="window.showAddToPlaylist(event, '${id}', '${esc(s.trackName)}', '${esc(s.artistName)}', '${esc(s.artworkUrl100)}')">➕</button>
         <button class="fav-btn ${isFav ? 'active' : ''}">${isFav ? '❤️' : '🤍'}</button>
         <a href="${dlUrl}" target="_blank" title="Download">⬇</a>
@@ -229,7 +268,6 @@ function renderCardList(list, containerId) {
   });
 }
 
-// LIBRARY LOGIC (UPDATED)
 window.renderLibrary = function() {
   const favBox = document.getElementById("favList"); favBox.innerHTML = "";
   if (window.favorites.length === 0) { favBox.innerHTML = '<p style="color:var(--muted); font-size:14px;">No favorites yet.</p>'; }
@@ -263,13 +301,10 @@ window.renderLibrary = function() {
 window.viewPlaylistSongs = function(index) {
   const box = document.getElementById(`playlist-songs-${index}`);
   const pl = window.userPlaylists[index];
-  
   if(box.style.display === "block") { box.style.display = "none"; return; }
-  box.style.display = "block";
-  box.innerHTML = "";
+  box.style.display = "block"; box.innerHTML = "";
   
   if(pl.songs.length === 0) { box.innerHTML = '<p style="color:var(--muted); font-size:12px;">Empty playlist.</p>'; return; }
-  
   pl.songs.forEach((s, i) => {
     const row = document.createElement("div"); row.className = "song-row";
     row.style = "padding: 8px; background: var(--bg); margin-bottom: 5px; border-radius: 5px;";
@@ -284,29 +319,19 @@ window.viewPlaylistSongs = function(index) {
 
 window.playPlaylistSong = function(plIndex, songIndex) {
   const pl = window.userPlaylists[plIndex];
-  const s = pl.songs[songIndex];
-  // Convert playlist song format to standard queue format
-  const mappedQueue = pl.songs.map(song => ({
-      videoId: song.id, trackName: song.title, artistName: song.artist, artworkUrl100: song.image, source: "youtube"
-  }));
-  queue = mappedQueue;
-  queueIdx = songIndex;
-  playCurrentQueueItem();
+  const mappedQueue = pl.songs.map(song => ({ videoId: song.id, trackName: song.title, artistName: song.artist, artworkUrl100: song.image, source: "youtube" }));
+  queue = mappedQueue; queueIdx = songIndex; playCurrentQueueItem();
 };
 
 window.createNewPlaylist = function() {
   if(!window.currentUser) return alert("Login first!");
   const name = prompt("Enter playlist name:");
-  if(name) {
-    const newPl = [...window.userPlaylists, { name: name, songs: [] }];
-    window.savePlaylistsFirestore(newPl);
-  }
+  if(name) { window.savePlaylistsFirestore([...window.userPlaylists, { name: name, songs: [] }]); }
 }
 
 window.deletePlaylist = function(index) {
   if(!confirm("Delete this playlist?")) return;
-  const newPl = window.userPlaylists.filter((_, i) => i !== index);
-  window.savePlaylistsFirestore(newPl);
+  window.savePlaylistsFirestore(window.userPlaylists.filter((_, i) => i !== index));
 }
 
 window.showAddToPlaylist = function(e, id, title, artist, image) {
@@ -320,53 +345,36 @@ window.showAddToPlaylist = function(e, id, title, artist, image) {
   
   if(window.userPlaylists[idx]) {
     let newPl = [...window.userPlaylists];
-    // Check if song already exists
     if(newPl[idx].songs.some(s => s.id === id)) return alert("Song already in this playlist!");
-    
     newPl[idx].songs.push({ id, title, artist, image });
     window.savePlaylistsFirestore(newPl);
     alert("Added to playlist!");
   }
 };
 
-// LYRICS
 window.fetchLyrics = async function() {
   if(!currentPlayingData) return;
   document.getElementById("lyricsOverlay").classList.add("show");
   document.getElementById("lyricsText").innerHTML = '<div style="text-align:center; padding:20px;">Fetching lyrics...</div>';
-  
   try {
     let rawArtist = currentPlayingData.artist.split("·")[0].trim().replace(" (Preview)", "");
     let rawTitle = currentPlayingData.title;
-    
     if(rawTitle.includes(" - ")) {
         let parts = rawTitle.split(" - ");
         rawArtist = parts[1].split("(")[0].split("|")[0].trim();
         rawTitle = parts[0].split("(")[0].split("|")[0].trim();
-    } else {
-        rawTitle = rawTitle.split("(")[0].split("|")[0].split("Lyrical")[0].split("Full Video")[0].trim();
-    }
+    } else { rawTitle = rawTitle.split("(")[0].split("|")[0].split("Lyrical")[0].split("Full Video")[0].trim(); }
 
     const res = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(rawArtist)}/${encodeURIComponent(rawTitle)}`);
     const data = await res.json();
-    
-    if(data.lyrics) {
-      document.getElementById("lyricsText").textContent = data.lyrics;
-    } else {
+    if(data.lyrics) { document.getElementById("lyricsText").textContent = data.lyrics; } 
+    else {
       const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(rawArtist + " " + rawTitle + " lyrics")}`;
-      document.getElementById("lyricsText").innerHTML = `
-        <div style="text-align:center; padding:20px;">
-          <p style="margin-bottom:20px; color:#aaa;">Lyrics not found on API.</p>
-          <a href="${searchUrl}" target="_blank" style="background:var(--blue); color:#fff; padding:10px 20px; border-radius:20px; text-decoration:none; font-weight:bold;">🔍 Search on Google</a>
-        </div>`;
+      document.getElementById("lyricsText").innerHTML = `<div style="text-align:center; padding:20px;"><p style="margin-bottom:20px; color:#aaa;">Lyrics not found on API.</p><a href="${searchUrl}" target="_blank" class="glass-btn" style="background:var(--blue); color:#fff; text-decoration:none;">🔍 Search on Google</a></div>`;
     }
   } catch (err) {
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(currentPlayingData.title + " lyrics")}`;
-    document.getElementById("lyricsText").innerHTML = `
-        <div style="text-align:center; padding:20px;">
-          <p style="margin-bottom:20px; color:#aaa;">Error fetching lyrics.</p>
-          <a href="${searchUrl}" target="_blank" style="background:var(--blue); color:#fff; padding:10px 20px; border-radius:20px; text-decoration:none; font-weight:bold;">🔍 Search on Google</a>
-        </div>`;
+    document.getElementById("lyricsText").innerHTML = `<div style="text-align:center; padding:20px;"><p style="margin-bottom:20px; color:#aaa;">Error fetching lyrics.</p><a href="${searchUrl}" target="_blank" class="glass-btn" style="background:var(--blue); color:#fff; text-decoration:none;">🔍 Search on Google</a></div>`;
   }
 }
 window.closeLyrics = function() { document.getElementById("lyricsOverlay").classList.remove("show"); }
@@ -392,7 +400,6 @@ window.renderHome = function() {
   renderCardList(quickPicksData, "quickPicks");
   renderCardList(trendingData, "trendingSongs");
   renderRecentlyPlayed();
-  
   const artistBox = document.getElementById("topArtists"); artistBox.innerHTML = "";
   artistData.forEach(a => {
     const card = document.createElement("div"); card.className = "card";
