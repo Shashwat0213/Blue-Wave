@@ -7,7 +7,6 @@
 <meta name="theme-color" content="#000000">
 <title>BlueWave Music - Premium</title>
 <link rel="stylesheet" href="style.css">
-<!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
 </head>
 <body>
@@ -31,9 +30,9 @@
 <div id="appContainer" style="display: none;">
   <div class="spinner-overlay" id="loadingOverlay"><div class="spinner"></div><p>Loading...</p></div>
 
-  <header>
+  <header class="glass-header">
     <div class="logo" onclick="window.location.reload()">♪ BLUE<span>WAVE</span></div>
-    <div class="search-bar">
+    <div class="search-bar glass-panel">
       <span>🔍</span>
       <input id="globalSearch" type="text" placeholder="Search songs, artists...">
       <button onclick="window.performSearch()">Search</button>
@@ -45,28 +44,23 @@
   </header>
 
   <main>
-    <!-- TABS -->
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="window.switchTab('home')" id="tab-home">Home</button>
       <button class="nav-tab" onclick="window.switchTab('library')" id="tab-library">Library</button>
     </div>
 
-    <!-- SEARCH SECTION -->
     <div id="searchSection" style="display: none;">
       <h2 class="section-title">Search Results</h2>
       <div class="song-list" id="searchResults"></div>
     </div>
 
-    <!-- HOME SECTION -->
     <div id="homeSections">
-      <!-- SLEEP TIMER -->
       <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
-        <button onclick="window.setSleepTimer(15)" style="background:var(--surface); color:#fff; border:1px solid var(--line); padding:8px 15px; border-radius:20px; font-size:12px; cursor:pointer;">🌙 Sleep 15m</button>
-        <button onclick="window.setSleepTimer(30)" style="background:var(--surface); color:#fff; border:1px solid var(--line); padding:8px 15px; border-radius:20px; font-size:12px; cursor:pointer;">🌙 Sleep 30m</button>
-        <button onclick="window.setSleepTimer(0)" style="background:var(--surface); color:#ef4444; border:1px solid #ef4444; padding:8px 15px; border-radius:20px; font-size:12px; cursor:pointer;">✕ Cancel</button>
+        <button onclick="window.setSleepTimer(15)" class="glass-btn">🌙 Sleep 15m</button>
+        <button onclick="window.setSleepTimer(30)" class="glass-btn">🌙 Sleep 30m</button>
+        <button onclick="window.setSleepTimer(0)" class="glass-btn" style="color:#ef4444;">✕ Cancel</button>
       </div>
 
-      <!-- RECENTLY PLAYED -->
       <h2 class="section-title">Recently Played</h2>
       <div class="h-scroll" id="recentlyPlayed"></div>
 
@@ -80,7 +74,6 @@
       <div class="h-scroll" id="topArtists"></div>
     </div>
 
-    <!-- LIBRARY SECTION -->
     <div id="librarySection" style="display: none;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
         <h2 class="section-title" style="margin:0;">My Favorites</h2>
@@ -89,15 +82,18 @@
 
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h2 class="section-title" style="margin:0;">My Playlists</h2>
-        <button onclick="window.createNewPlaylist()" style="background:var(--blue); color:#fff; border:none; padding:8px 15px; border-radius:20px; cursor:pointer;">+ Create Playlist</button>
+        <button onclick="window.createNewPlaylist()" class="glass-btn" style="background:var(--blue); color:#fff;">+ Create Playlist</button>
       </div>
       <div id="playlistsContainer" style="display:flex; flex-direction:column; gap:15px; margin-top:15px;"></div>
     </div>
   </main>
 
   <!-- MINI PLAYER -->
-  <div class="player-bar" id="playerBar" onclick="window.openFullPlayer()">
+  <div class="player-bar glass-panel" id="playerBar" onclick="window.openFullPlayer()">
     <div class="player-left">
+      <div class="equalizer">
+         <span></span><span></span><span></span>
+      </div>
       <img id="miniImg" src="https://placehold.co/100x100/222/22d3ee?text=♪" alt="">
       <div><h4 id="miniTitle">Song Title</h4><p id="miniArtist">Artist Name</p></div>
     </div>
@@ -124,12 +120,21 @@
     <div class="fp-bg-art" id="fpBgArt"></div>
     
     <!-- LYRICS OVERLAY -->
-    <div class="lyrics-overlay" id="lyricsOverlay">
+    <div class="lyrics-overlay glass-panel" id="lyricsOverlay">
       <div class="lyrics-header">
         <h3>Lyrics</h3>
         <button onclick="window.closeLyrics()">✕</button>
       </div>
       <div class="lyrics-text" id="lyricsText">Loading lyrics...</div>
+    </div>
+
+    <!-- QUEUE OVERLAY -->
+    <div class="queue-overlay glass-panel" id="queueOverlay">
+      <div class="lyrics-header">
+        <h3>Up Next (Queue)</h3>
+        <button onclick="window.closeQueue()">✕</button>
+      </div>
+      <div class="queue-list" id="queueList"></div>
     </div>
 
     <div class="fp-header">
@@ -141,11 +146,14 @@
       <div class="fp-art-wrapper"><img id="fpArt" src="https://placehold.co/400x400/222/22d3ee?text=♪" alt=""></div>
       <div class="fp-info">
         <div class="fp-text"><h1 id="fpTitle">Song Title</h1><p id="fpArtist">Artist Name</p></div>
-        <div class="fp-actions"><button id="fpFavBtn" onclick="window.toggleFavFull()">☆</button></div>
+        <div class="fp-actions">
+          <button id="fpShareBtn" onclick="window.shareSong()">🔗</button>
+          <button id="fpQueueBtn" onclick="window.showQueue()">☰</button>
+          <button id="fpFavBtn" onclick="window.toggleFavFull()">☆</button>
+        </div>
       </div>
       
-      <!-- LYRICS BUTTON -->
-      <button class="fp-lyrics-btn" onclick="window.fetchLyrics()">📝 View Lyrics</button>
+      <button class="fp-lyrics-btn glass-btn" onclick="window.fetchLyrics()">📝 View Lyrics</button>
 
       <div class="fp-progress">
         <div class="fp-time"><span id="fpCur">0:00</span><span id="fpDur">0:00</span></div>
@@ -164,23 +172,15 @@
     </div>
   </div>
 
-  <!-- HIDDEN PLAYERS -->
   <div id="video-container" style="position:fixed; bottom:-9999px; left:-9999px; width:300px; height:300px;"><div id="ytPlayer"></div></div>
   <audio id="audioPlayer"></audio>
 </div>
 
-<!-- SERVICE WORKER (PWA) -->
 <script>
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('SW registered!'))
-        .catch(err => console.log('SW registration failed:', err));
-    });
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
   }
 </script>
-
-<!-- SCRIPTS -->
 <script type="module" src="firebase.js"></script>
 <script src="app.js"></script>
 </body>
